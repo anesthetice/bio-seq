@@ -45,7 +45,7 @@ use core::{fmt, ptr, str};
 #[repr(transparent)]
 pub struct Seq<A: Codec> {
     pub(crate) _p: PhantomData<A>,
-    pub(crate) bv: Bv,
+    pub bv: Bv,
 }
 
 impl<A: Codec> From<Seq<A>> for usize {
