@@ -1,6 +1,7 @@
 //! 2-bit DNA representation: `A: 00, C: 01, G: 10, T: 11`
 
 use crate::codec::Codec;
+use crate::seq::Seq;
 //use crate::kmer::Kmer;
 //use crate::seq::{Seq, SeqArray, SeqSlice};
 use crate::{Complement, ComplementMut};
@@ -104,6 +105,17 @@ impl ReverseMut for Seq<Dna> {
 }
 */
 
+impl Seq<Dna> {
+    fn set(&mut self, pos: usize, base: Dna) {
+        let offset = pos << 1;
+        let val = base as u8;
+
+        let slice = self.bv.as_mut_bitslice();
+        slice.set(offset, (val & 0b10) != 0);
+        slice.set(offset + 1, (val & 0b01) != 0);
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::prelude::*;
@@ -130,6 +142,14 @@ mod tests {
             kmer!("GTGACGA"),
             Kmer::<Dna, 7>::try_from(dna!("GTGAAGA")).unwrap()
         );
+    }
+
+    #[test]
+    fn extra_impl() {
+        let mut dna = dna!("AACG").to_owned();
+        let new_dna = dna!("ATCG").to_owned();
+        dna.set(1, Dna::T);
+        assert_eq!(dna, new_dna);
     }
 
     /*
