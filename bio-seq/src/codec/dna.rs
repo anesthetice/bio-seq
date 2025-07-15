@@ -106,7 +106,7 @@ impl ReverseMut for Seq<Dna> {
 */
 
 impl Seq<Dna> {
-    fn set(&mut self, pos: usize, base: Dna) {
+    pub fn set(&mut self, pos: usize, base: Dna) {
         let offset = pos << 1;
         let val = base as u8;
 
