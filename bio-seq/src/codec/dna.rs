@@ -136,6 +136,17 @@ impl<Context> bincode::Decode<Context> for Seq<Dna> {
     }
 }
 
+impl<'de, Context> bincode::BorrowDecode<'de, Context> for Seq<Dna> {
+    fn borrow_decode<D: bincode::de::BorrowDecoder<'de, Context = Context>>(
+        decoder: &mut D,
+    ) -> Result<Self, bincode::error::DecodeError> {
+        let (len, bits): (usize, Vec<usize>) = bincode::BorrowDecode::borrow_decode(decoder)?;
+        Self::from_raw(len, &bits).ok_or(bincode::error::DecodeError::Other(
+            "Failed to recreate the DNA sequence from its raw parts",
+        ))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::prelude::*;
