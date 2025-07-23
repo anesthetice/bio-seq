@@ -116,6 +116,26 @@ impl Seq<Dna> {
     }
 }
 
+impl bincode::Encode for Seq<Dna> {
+    fn encode<E: bincode::enc::Encoder>(
+        &self,
+        encoder: &mut E,
+    ) -> Result<(), bincode::error::EncodeError> {
+        bincode::Encode::encode(&(self.len(), self.into_raw()), encoder)
+    }
+}
+
+impl<Context> bincode::Decode<Context> for Seq<Dna> {
+    fn decode<D: bincode::de::Decoder<Context = Context>>(
+        decoder: &mut D,
+    ) -> Result<Self, bincode::error::DecodeError> {
+        let (len, bits): (usize, Vec<usize>) = bincode::Decode::decode(decoder)?;
+        Self::from_raw(len, &bits).ok_or(bincode::error::DecodeError::Other(
+            "Failed to recreate the DNA sequence from its raw parts",
+        ))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::prelude::*;
@@ -150,6 +170,19 @@ mod tests {
         let new_dna = dna!("ATCG").to_owned();
         dna.set(1, Dna::T);
         assert_eq!(dna, new_dna);
+    }
+
+    #[test]
+    fn bincode_test() {
+        let dna = dna!("ACTGACTTTCACCGGG").to_owned();
+
+        let config = bincode::config::standard();
+        let dna_roundtrip: Seq<Dna> =
+            bincode::decode_from_slice(&bincode::encode_to_vec(&dna, config).unwrap(), config)
+                .unwrap()
+                .0;
+
+        assert_eq!(dna, dna_roundtrip);
     }
 
     /*
