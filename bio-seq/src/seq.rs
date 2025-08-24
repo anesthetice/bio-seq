@@ -472,6 +472,12 @@ impl<A: Codec> From<&Vec<A>> for Seq<A> {
     }
 }
 
+impl<A: Codec> From<Vec<&A>> for Seq<A> {
+    fn from(vec: Vec<&A>) -> Self {
+        vec.into_iter().copied().collect()
+    }
+}
+
 impl<A: Codec, B: Codec> From<&SeqSlice<A>> for Seq<B>
 where
     A: Into<B>,

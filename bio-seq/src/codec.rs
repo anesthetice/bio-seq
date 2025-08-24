@@ -132,7 +132,7 @@ pub use bio_seq_derive::Codec;
 
 /// The binary encoding of an alphabet's symbols can be represented with any type.
 /// Encoding from ASCII bytes and decoding the representation is implemented through
-/// the `Codec` trait.  
+/// the `Codec` trait.
 ///
 /// The intended representation is an `Enum`, transparently represented as a `u8`.
 pub trait Codec: fmt::Debug + Copy + Clone + PartialEq + Hash + Eq {
