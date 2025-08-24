@@ -52,6 +52,8 @@
 //! // ACG matches pattern
 //! // ATG matches pattern
 //! ```
+use arrayvec::ArrayVec;
+
 use crate::codec::{Codec, dna::Dna};
 use crate::seq::{Seq, SeqArray, SeqSlice};
 use crate::{Complement, ComplementMut};
@@ -78,12 +80,6 @@ const IUPAC_COMPLEMENT_TABLE: [u8; 16] = {
     table
 };
 
-impl From<Iupac> for u8 {
-    fn from(b: Iupac) -> u8 {
-        b as u8
-    }
-}
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Codec)]
 #[bits(4)]
 #[repr(u8)]
@@ -107,6 +103,12 @@ pub enum Iupac {
     X = 0b0000,
 }
 
+impl From<Iupac> for u8 {
+    fn from(b: Iupac) -> u8 {
+        b as u8
+    }
+}
+
 impl From<Dna> for Iupac {
     fn from(dna: Dna) -> Self {
         match dna {
@@ -114,6 +116,40 @@ impl From<Dna> for Iupac {
             Dna::C => Iupac::C,
             Dna::G => Iupac::G,
             Dna::T => Iupac::T,
+        }
+    }
+}
+
+#[macro_export]
+macro_rules! avec {
+    ( $($elem:expr),+ $(,)? ) => {{
+        let mut av = ::arrayvec::ArrayVec::<_, 4>::new();
+        $(
+            unsafe {av.push_unchecked($elem)}
+        )*
+        av
+    }};
+}
+
+impl Iupac {
+    pub fn to_dna_ext(&self) -> ArrayVec<Dna, 4> {
+        match self {
+            Self::A => avec![Dna::A],
+            Self::C => avec![Dna::C],
+            Self::G => avec![Dna::G],
+            Self::T => avec![Dna::T],
+            Self::R => avec![Dna::A, Dna::G],
+            Self::Y => avec![Dna::C, Dna::T],
+            Self::S => avec![Dna::C, Dna::G],
+            Self::W => avec![Dna::A, Dna::T],
+            Self::K => avec![Dna::G, Dna::T],
+            Self::M => avec![Dna::A, Dna::C],
+            Self::B => avec![Dna::C, Dna::G, Dna::T],
+            Self::D => avec![Dna::A, Dna::G, Dna::T],
+            Self::H => avec![Dna::A, Dna::C, Dna::T],
+            Self::V => avec![Dna::A, Dna::C, Dna::G],
+            Self::N => avec![Dna::A, Dna::C, Dna::G, Dna::T],
+            Self::X => ArrayVec::new(),
         }
     }
 }
