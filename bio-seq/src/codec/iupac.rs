@@ -198,6 +198,37 @@ impl ReverseComplement for Seq<Iupac> {
 }
 */
 
+impl bincode::Encode for Seq<Iupac> {
+    fn encode<E: bincode::enc::Encoder>(
+        &self,
+        encoder: &mut E,
+    ) -> Result<(), bincode::error::EncodeError> {
+        bincode::Encode::encode(&(self.len(), self.into_raw()), encoder)
+    }
+}
+
+impl<Context> bincode::Decode<Context> for Seq<Iupac> {
+    fn decode<D: bincode::de::Decoder<Context = Context>>(
+        decoder: &mut D,
+    ) -> Result<Self, bincode::error::DecodeError> {
+        let (len, bits): (usize, Vec<usize>) = bincode::Decode::decode(decoder)?;
+        Self::from_raw(len, &bits).ok_or(bincode::error::DecodeError::Other(
+            "Failed to recreate the DNA sequence from its raw parts",
+        ))
+    }
+}
+
+impl<'de, Context> bincode::BorrowDecode<'de, Context> for Seq<Iupac> {
+    fn borrow_decode<D: bincode::de::BorrowDecoder<'de, Context = Context>>(
+        decoder: &mut D,
+    ) -> Result<Self, bincode::error::DecodeError> {
+        let (len, bits): (usize, Vec<usize>) = bincode::BorrowDecode::borrow_decode(decoder)?;
+        Self::from_raw(len, &bits).ok_or(bincode::error::DecodeError::Other(
+            "Failed to recreate the DNA sequence from its raw parts",
+        ))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::prelude::*;
